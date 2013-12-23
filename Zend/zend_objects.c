@@ -143,6 +143,7 @@ ZEND_API zend_object_value zend_objects_new(zend_object **object, zend_class_ent
 	zend_object_value retval;
 
 	*object = emalloc(sizeof(zend_object));
+	fprintf(stderr, "ALLOCATED ZEND_OBJECT AT %p\n", *object);
 	(*object)->ce = class_type;
 	(*object)->properties = NULL;
 	(*object)->properties_table = NULL;

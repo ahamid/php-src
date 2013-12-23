@@ -543,6 +543,28 @@ PHP_FUNCTION(var_export)
 
 static void php_var_serialize_intern(smart_str *buf, zval *struc, HashTable *var_hash TSRMLS_DC);
 
+static void print_id(zval *var TSRMLS_DC) {
+	char id[32], *p;
+	register int len;
+	zend_object* zop;
+	unsigned long addr;
+
+	if ((Z_TYPE_P(var) == IS_OBJECT) && Z_OBJ_HT_P(var)->get_class_entry) {
+	    zop = zend_objects_get_address(var TSRMLS_CC);
+	    addr = (unsigned long) zop;
+	    fprintf(stderr, "zval addr: %lu\n", addr);
+		p = smart_str_print_long(id + sizeof(id) - 1,
+				addr);
+		*(--p) = 'O';
+		len = id + sizeof(id) - 1 - p;
+	} else {
+		p = smart_str_print_long(id + sizeof(id) - 1, (long) var);
+		len = id + sizeof(id) - 1 - p;
+	}
+	fprintf(stderr, "zval id  : %s\n", p);
+	return;
+}
+
 static inline int php_add_var_hash(HashTable *var_hash, zval *var, void *var_old TSRMLS_DC) /* {{{ */
 {
 	ulong var_no;
@@ -574,7 +596,9 @@ static inline int php_add_var_hash(HashTable *var_hash, zval *var, void *var_old
 
 	/* +1 because otherwise hash will think we are trying to store NULL pointer */
 	var_no = zend_hash_num_elements(var_hash) + 1;
+
 	zend_hash_add(var_hash, p, len, &var_no, sizeof(var_no), NULL);
+    Z_ADDREF_P(var);
 #if 1
 	fprintf(stderr, "+ add var (%d): %lu\n", Z_TYPE_P(var), var_no);
 #endif
@@ -906,7 +930,7 @@ static void php_var_serialize_intern(smart_str *buf, zval *struc, HashTable *var
 PHPAPI void php_var_serialize(smart_str *buf, zval **struc, php_serialize_data_t *var_hash TSRMLS_DC) /* {{{ */
 {
 	php_var_serialize_intern(buf, *struc, *var_hash TSRMLS_CC);
-    printf("php_var_serialize buf: %.*s\n", buf->len, buf->c);
+    //printf("php_var_serialize buf: %.*s\n", buf->len, buf->c);
 	smart_str_0(buf);
 }
 /* }}} */
@@ -926,6 +950,8 @@ PHP_FUNCTION(serialize)
 	Z_TYPE_P(return_value) = IS_STRING;
 	Z_STRVAL_P(return_value) = NULL;
 	Z_STRLEN_P(return_value) = 0;
+
+	print_id(*struc TSRMLS_CC);
 
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 	php_var_serialize(&buf, struc, &var_hash TSRMLS_CC);
