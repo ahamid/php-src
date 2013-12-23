@@ -373,7 +373,7 @@ static int php_array_element_export(zval **zv TSRMLS_DC, int num_args, va_list a
 
 	smart_str_appendc(buf, ',');
 	smart_str_appendc(buf, '\n');
-	
+
 	return 0;
 }
 /* }}} */
@@ -392,7 +392,7 @@ static int php_object_element_export(zval **zv TSRMLS_DC, int num_args, va_list 
 		const char *pname;
 		char *pname_esc;
 		int  pname_esc_len;
-		
+
 		zend_unmangle_property_name(hash_key->arKey, hash_key->nKeyLength - 1,
 				&class_name, &pname);
 		pname_esc = php_addcslashes(pname, strlen(pname), &pname_esc_len, 0,
@@ -469,7 +469,7 @@ PHPAPI void php_var_export_ex(zval **struc, int level, smart_str *buf TSRMLS_DC)
 			buffer_append_spaces(buf, level - 1);
 		}
 		smart_str_appendc(buf, ')');
-    
+
 		break;
 
 	case IS_OBJECT:
@@ -566,7 +566,7 @@ static inline int php_add_var_hash(HashTable *var_hash, zval *var, void *var_old
 			var_no = -1;
 			zend_hash_next_index_insert(var_hash, &var_no, sizeof(var_no), NULL);
 		}
-#if 0
+#if 1
 		fprintf(stderr, "- had var (%d): %lu\n", Z_TYPE_P(var), **(ulong**)var_old);
 #endif
 		return FAILURE;
@@ -575,7 +575,7 @@ static inline int php_add_var_hash(HashTable *var_hash, zval *var, void *var_old
 	/* +1 because otherwise hash will think we are trying to store NULL pointer */
 	var_no = zend_hash_num_elements(var_hash) + 1;
 	zend_hash_add(var_hash, p, len, &var_no, sizeof(var_no), NULL);
-#if 0
+#if 1
 	fprintf(stderr, "+ add var (%d): %lu\n", Z_TYPE_P(var), var_no);
 #endif
 	return SUCCESS;
@@ -802,7 +802,7 @@ static void php_var_serialize_intern(smart_str *buf, zval *struc, HashTable *var
 					BG(serialize_lock)++;
 					res = call_user_function_ex(CG(function_table), &struc, &fname, &retval_ptr, 0, 0, 1, NULL TSRMLS_CC);
 					BG(serialize_lock)--;
-                    
+
 					if (EG(exception)) {
 						if (retval_ptr) {
 							zval_ptr_dtor(&retval_ptr);
@@ -906,6 +906,7 @@ static void php_var_serialize_intern(smart_str *buf, zval *struc, HashTable *var
 PHPAPI void php_var_serialize(smart_str *buf, zval **struc, php_serialize_data_t *var_hash TSRMLS_DC) /* {{{ */
 {
 	php_var_serialize_intern(buf, *struc, *var_hash TSRMLS_CC);
+    printf("php_var_serialize buf: %.*s\n", buf->len, buf->c);
 	smart_str_0(buf);
 }
 /* }}} */
